@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Trivia Escolar Interactiva</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #e3f2fd;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .trivia-container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      max-width: 700px;
+      width: 100%;
+      position: relative;
+    }
+    h1 {
+      text-align: center;
+      color: #1976d2;
+    }
+    .timer {
+      font-size: 24px;
+      font-weight: bold;
+      color: #d32f2f;
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      background: #fff3cd;
+      padding: 8px 15px;
+      border: 2px solid #ffa000;
+      border-radius: 10px;
+    }
+    .question {
+      margin-bottom: 20px;
+    }
+    .question img {
+      width: 100%;
+      max-height: 250px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+    .options {
+      list-style: none;
+      padding: 0;
+    }
+    .options li {
+      margin-bottom: 10px;
+    }
+    button {
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #1565c0;
+    }
+    .result {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="trivia-container animate__animated animate__fadeIn">
+    <div class="timer" id="timer">2:00</div>
+    <h1>Trivia Escolar</h1>
+    <div id="quiz"></div>
+    <button id="nextBtn">Siguiente</button>
+    <div id="result" class="result animate__animated animate__fadeIn" style="display:none;"></div>
+  </div>
+
+  <script>
+    const preguntas = [
+      {
+        pregunta: "¿Cuál es la capital de Francia?",
+        opciones: ["Madrid", "París", "Roma", "Berlín"],
+        respuesta: 1,
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Paris_vue_d%27ensemble_tour_Eiffel.jpg/640px-Paris_vue_d%27ensemble_tour_Eiffel.jpg"
+      },
+      {
+        pregunta: "¿Cuál es el planeta más grande del sistema solar?",
+        opciones: ["Tierra", "Marte", "Júpiter", "Venus"],
+        respuesta: 2,
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/e/e2/Jupiter.jpg"
+      },
+      {
+        pregunta: "¿Quién escribió 'Cien años de soledad'?",
+        opciones: ["Mario Vargas Llosa", "Gabriel García Márquez", "Pablo Neruda", "Jorge Luis Borges"],
+        respuesta: 1,
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Gabriel_Garcia_Marquez.jpg/640px-Gabriel_Garcia_Marquez.jpg"
+      },
+      {
+        pregunta: "¿Qué elemento químico tiene el símbolo 'O'?",
+        opciones: ["Oro", "Oxígeno", "Osmio", "Oxalato"],
+        respuesta: 1,
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/0/04/Oxygen_discharge_tube.jpg"
+      },
+      {
+        pregunta: "¿En qué continente está Egipto?",
+        opciones: ["Asia", "Europa", "África", "América"],
+        respuesta: 2,
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Pyramids_of_Egypt_Giza.jpg/640px-Pyramids_of_Egypt_Giza.jpg"
+      },
+      {
+        pregunta: "¿Cuál es el océano más grande?",
+        opciones: ["Atlántico", "Índico", "Pacífico", "Ártico"],
+        respuesta: 2,
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Pacific_Ocean_-_en.svg/640px-Pacific_Ocean_-_en.svg.png"
+      },
+      {
+        pregunta: "¿Cuántos lados tiene un heptágono?",
+        opciones: ["5", "6", "7", "8"],
+        respuesta: 2,
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Regular_polygon_7_annotated.svg/640px-Regular_polygon_7_annotated.svg.png"
+      },
+      {
+        pregunta: "¿Cuál es el idioma más hablado en el mundo?",
+        opciones: ["Inglés", "Español", "Chino mandarín", "Hindi"],
+        respuesta: 2,
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Chinese_Characters.svg/640px-Chinese_Characters.svg.png"
+      },
+      {
+        pregunta: "¿Qué órgano bombea la sangre?",
+        opciones: ["Pulmón", "Riñón", "Hígado", "Corazón"],
+        respuesta: 3,
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Gray505.png/640px-Gray505.png"
+      },
+      {
+        pregunta: "¿Cuántos planetas hay en el sistema solar?",
+        opciones: ["7", "8", "9", "10"],
+        respuesta: 1,
+        imagen: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Solar_sys8.jpg/640px-Solar_sys8.jpg"
+      },
+      // Agrega más preguntas aquí hasta completar 20...
+    ];
+
+    let preguntaActual = 0;
+    let puntaje = 0;
+    let tiempo = 120; // en segundos
+
+    const quiz = document.getElementById('quiz');
+    const nextBtn = document.getElementById('nextBtn');
+    const resultDiv = document.getElementById('result');
+    const timerDisplay = document.getElementById('timer');
+
+    function mostrarPregunta() {
+      const q = preguntas[preguntaActual];
+      quiz.innerHTML = `
+        <div class="question animate__animated animate__fadeIn">
+          <img src="${q.imagen}" alt="Imagen relacionada con la pregunta">
+          <h3>${q.pregunta}</h3>
+          <ul class="options">
+            ${q.opciones.map((op, i) => `
+              <li><label><input type="radio" name="respuesta" value="${i}"> ${op}</label></li>
+            `).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    function mostrarResultado() {
+      clearInterval(intervalo);
+      let retro;
+      if (puntaje === preguntas.length) {
+        retro = "¡Perfecto! ¡Eres un genio!";
+      } else if (puntaje >= 15) {
+        retro = "¡Muy bien hecho!";
+      } else if (puntaje >= 10) {
+        retro = "Bien, pero puedes mejorar.";
+      } else {
+        retro = "¡Ánimo! ¡Sigue practicando!";
+      }
+      quiz.style.display = "none";
+      nextBtn.style.display = "none";
+      resultDiv.style.display = "block";
+      resultDiv.innerHTML = `
+        <h2>Resultado final: ${puntaje} / ${preguntas.length}</h2>
+        <p>${retro}</p>
+      `;
+    }
+
+    nextBtn.addEventListener('click', () => {
+      const respuesta = document.querySelector('input[name="respuesta"]:checked');
+      if (!respuesta) {
+        alert("Por favor selecciona una respuesta");
+        return;
+      }
+
+      if (parseInt(respuesta.value) === preguntas[preguntaActual].respuesta) {
+        puntaje++;
+      }
+
+      preguntaActual++;
+      if (preguntaActual < preguntas.length) {
+        mostrarPregunta();
+      } else {
+        mostrarResultado();
+      }
+    });
+
+    const intervalo = setInterval(() => {
+      if (tiempo <= 0) {
+        mostrarResultado();
+      } else {
+        tiempo--;
+        const minutos = Math.floor(tiempo / 60);
+        const segundos = tiempo % 60;
+        timerDisplay.textContent = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
+      }
+    }, 1000);
+
+    mostrarPregunta();
+  </script>
+</body>
+</html>
